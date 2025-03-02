@@ -1,0 +1,37 @@
+version: '3.1'
+
+services:
+  reverse-proxy:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+    networks:
+      - dmz_network
+
+
+  db:
+    image: mysql:5.7
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: wordpress
+      MYSQL_USER: wordpress
+      MYSQL_PASSWORD: wordpress
+    networks:
+      - mz_network
+  
+  client1:
+    image: alpine
+    networks:
+      - mz_network
+  client2:
+    image: alpine
+    networks:
+      - mz_network
+
+networks:
+  dmz_network:
+    driver: bridge
+  mz_network:
+    driver: bridge
+  
+  
