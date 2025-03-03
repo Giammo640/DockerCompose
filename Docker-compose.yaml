@@ -8,7 +8,6 @@ services:
     networks:
       - dmz_network
 
-
   db:
     image: mysql:5.7
     environment:
@@ -19,6 +18,16 @@ services:
     networks:
       - mz_network
   
+  firewall_dmz:
+    image: ubuntu
+    networks:
+      - dmz_network
+  
+  firewall_mz:
+    image: ubuntu
+    networks:
+      - mz_network
+
   client1:
     image: alpine
     networks:
