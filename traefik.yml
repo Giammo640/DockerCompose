@@ -1,0 +1,16 @@
+global:
+  checkNewVersion: true
+  sendAnonymousUsage: false
+
+entryPoints:
+  web:
+    address: ":80"
+  websecure:
+    address: ":443"
+
+providers:
+  docker:
+    exposedByDefault: false  # Non esporre automaticamente tutti i container
+
+api:
+  dashboard: true  # Abilita la dashboard di Traefik

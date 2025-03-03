@@ -1,0 +1,65 @@
+version: '3.1'
+
+services:
+  reverse-proxy:
+    image: "traefik:v2.10"
+    restart: always
+    ports:
+      - "80:80"    # HTTP
+      - "443:443"  # HTTPS
+      - "8080:8080" # Dashboard di Traefik
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"  # Accesso a Docker per l'autodiscovery
+      - "./traefik.yml:/etc/traefik/traefik.yml:ro"      # Configurazione di Traefik
+    networks:
+      - dmz_network
+
+  db:
+    image: mysql:5.7
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: wordpress
+      MYSQL_USER: wordpress
+      MYSQL_PASSWORD: wordpress
+    networks:
+      - mz_network
+  
+  firewall_dmz:
+    image: ubuntu
+    cap_add:
+      - NET_ADMIN  
+      - NET_RAW    
+    networks:
+      - dmz_network
+    volumes:
+      - ./dmz_firewall.sh:/usr/local/bin/dmz_firewall.sh
+    entrypoint: ["/bin/bash", "/usr/local/bin/dmz_firewall.sh"]
+    restart: always
+  
+  firewall_mz:
+    image: ubuntu
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+    networks:
+      - mz_network
+    volumes:
+      - ./mz_firewall.sh:/usr/local/bin/mz_firewall.sh
+    entrypoint: ["/bin/bash", "/usr/local/bin/mz_firewall.sh"]
+    restart: always
+
+  client1:
+    image: alpine
+    networks:
+      - mz_network
+  client2:
+    image: alpine
+    networks:
+      - mz_network
+
+networks:
+  dmz_network:
+    driver: bridge
+  mz_network:
+    driver: bridge
+
