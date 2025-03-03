@@ -34,7 +34,7 @@ services:
     volumes:
       - ./dmz_firewall.sh:/usr/local/bin/dmz_firewall.sh
     entrypoint: ["/bin/bash", "/usr/local/bin/dmz_firewall.sh"]
-    restart: always
+
   
   firewall_mz:
     image: ubuntu
@@ -46,7 +46,7 @@ services:
     volumes:
       - ./mz_firewall.sh:/usr/local/bin/mz_firewall.sh
     entrypoint: ["/bin/bash", "/usr/local/bin/mz_firewall.sh"]
-    restart: always
+
 
   client1:
     image: alpine
