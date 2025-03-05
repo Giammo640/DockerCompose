@@ -26,3 +26,5 @@ iptables -A FORWARD -i dmz_network -o dmz_internal -p tcp --dport 443 -j ACCEPT 
 # in quello del firewall prima di inoltrare i pacchetti alla rete dmz_network.
 iptables -t nat -A POSTROUTING -o dmz_network -j MASQUERADE
 
+
+tail -f /dev/null  #linea che mantiente il container attivo

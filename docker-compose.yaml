@@ -3,6 +3,7 @@ version: '3.8'
 services:
   reverse-proxy:
     image: "traefik:v2.10"
+    container_name: reverse-proxy
     restart: always
     ports:
       - "80:80"    # HTTP
@@ -12,28 +13,31 @@ services:
       - "/var/run/docker.sock:/var/run/docker.sock:ro"  # Accesso a Docker per l'autodiscovery
       - "./traefik.yml:/etc/traefik/traefik.yml:ro"      # Configurazione di Traefik
     networks:
-      - dmz_network
+      - dmz_internal
 
   db:
     image: mysql:5.7
+    container_name: db
     environment:
       MYSQL_ROOT_PASSWORD: password
       MYSQL_DATABASE: wordpress
       MYSQL_USER: wordpress
       MYSQL_PASSWORD: wordpress
     networks:
-      - mz_network
+      - mz_internal
     restart: always
 
   
   firewall_dmz:
     image: ubuntu
+    container_name:  firewall_dmz
     cap_add:
       - NET_ADMIN  
       - NET_RAW    
     networks:
-      - dmz_network
-        # ipv4_address: 192.168.200.1
+      dmz_internal:
+        ipv4_address: 172.21.0.18
+      dmz_network:
     volumes:
       - ./dmz_firewall.sh:/usr/local/bin/dmz_firewall.sh
     entrypoint: ["/bin/bash", "/usr/local/bin/dmz_firewall.sh"]
@@ -42,12 +46,14 @@ services:
   
   firewall_mz:
     image: ubuntu
+    container_name:  firewall_mz
     cap_add:
       - NET_ADMIN
       - NET_RAW
     networks:
-      - mz_network
-        # ipv4_address: 192.168.100.1
+      mz_internal:
+        ipv4_address: 172.20.0.8
+      mz_network:
     volumes:
       - ./mz_firewall.sh:/usr/local/bin/mz_firewall.sh
     entrypoint: ["/bin/bash", "/usr/local/bin/mz_firewall.sh"]
@@ -55,22 +61,37 @@ services:
 
   client1:
     image: alpine
+    container_name: client1
+    entrypoint: ["/bin/sh", "/usr/local/bin/init_firewall_mz.sh"]
     command: ["sleep", "infinity"]
+    volumes:
+      - ./init_firewall_mz.sh:/usr/local/bin/init_firewall_mz.sh
     networks:
-      - mz_network
+      - mz_internal
     restart: always
+    privileged: true
   client2:
     image: alpine
+    container_name: client2
+    entrypoint: ["/bin/sh", "/usr/local/bin/init_firewall_mz.sh"]
     command: ["sleep", "infinity"]
+    volumes:
+      - ./init_firewall_mz.sh:/usr/local/bin/init_firewall_mz.sh
     networks:
-      - mz_network
+      - mz_internal
     restart: always
+    privileged: true
   client3:
     image: alpine
+    container_name: client3
+    entrypoint: ["/bin/sh", "/usr/local/bin/init_firewall_dmz.sh"]
     command: ["sleep", "infinity"]
+    volumes:
+      - ./init_firewall_dmz.sh:/usr/local/bin/init_firewall_dmz.sh
     networks:
-      - dmz_network
+      - dmz_internal
     restart: always
+    privileged: true
 
 
 networks:
@@ -79,15 +100,15 @@ networks:
     driver: bridge
     ipam:
       config:
-        - subnet: "172.18.0.0/16"
-          gateway: "172.18.0.1"  # IP del firewall_mz
+        - subnet: "172.20.0.0/16"
+          # gateway: "172.20.0.8"  # IP del firewall_mz
   
   dmz_internal:
     driver: bridge
     ipam:
       config:
-        - subnet: "172.19.0.0/16"
-          gateway: "172.19.0.1"  # IP del firewall_dmz
+        - subnet: "172.21.0.0/16"
+          # gateway: "172.21.0.18"  # IP del firewall_dmz
  
   dmz_network:
     driver: bridge

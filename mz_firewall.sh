@@ -35,3 +35,5 @@ iptables -A OUTPUT -o eth0 -j DROP
 
 # NAT per permettere il traffico dalla rete interna verso l'esterno
 iptables -t nat -A POSTROUTING -o mz_network -j MASQUERADE          #probabilmente qui andrevbbe aggiunto SOLO l'ip del database
+
+tail -f /dev/null #linea che mantiente il container in esecuzione
