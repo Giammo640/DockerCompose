@@ -1,49 +1,42 @@
-import requests
 import subprocess
 
-def test_reverse_proxy():
+def run_command(command):
     try:
-        response = requests.get('http://localhost:80')
-        if response.status_code == 200:
-            print("Reverse proxy is working correctly.")
-        else:
-            print(f"Reverse proxy returned status code {response.status_code}.")
-    except requests.exceptions.RequestException as e:
-        print(f"Failed to connect to reverse proxy: {e}")
-
-def test_web_service():
-    try:
-        response = requests.get('http://localhost:5000')
-        if response.status_code == 200:
-            print("Web service is working correctly.")
-        else:
-            print(f"Web service returned status code {response.status_code}.")
-    except requests.exceptions.RequestException as e:
-        print(f"Failed to connect to web service: {e}")
-
-def test_firewall(container_name, target_ip, target_port):
-    try:
-        result = subprocess.run(
-            ["docker", "exec", container_name, "nc", "-zv", target_ip, str(target_port)],
-            capture_output=True, text=True
-        )
-        if result.returncode == 0:
-            print(f"Firewall test passed: {container_name} can connect to {target_ip}:{target_port}")
-        else:
-            print(f"Firewall test failed: {container_name} cannot connect to {target_ip}:{target_port}")
-            print(result.stderr)
+        result = subprocess.run(command, shell=True, text=True, capture_output=True)
+        return result.stdout.strip(), result.stderr.strip()
     except Exception as e:
-        print(f"Failed to execute firewall test: {e}")
+        return "", str(e)
+
+def check_containers():
+    output, error = run_command("sudo docker ps --format '{{.Names}}'")
+    if error:
+        print(f"Error: {error}")
+    else:
+        print(f"Containers:\n{output}")
+
+def test_connectivity():
+    print("\nTesting connectivity...")
+
+    tests = [
+        ("client", "ping -c 3 google.com"),  # Test di accesso a Internet
+        ("dmz_client", "ping -c 3 facebook.com"),  # Test di accesso a Internet
+        ("dmz_client", "ping -c 3 google.com"),  # Test di accesso a Internet
+        ("client", "nc -zv db-server 3306"),  # Test connessione al DB
+        ("firewall_mz", "ufw status verbose"),  # Stato del firewall MZ
+        ("firewall_dmz", "ufw status verbose"),  # Stato del firewall DMZ
+        ("db-server", "mysqladmin ping -h localhost -u user --password=password"),  # Test MySQL
+    ]
+
+    for container, command in tests:
+        print(f"\nTesting in: {container}, Command: {command}")
+        complete_command = f"sudo docker exec -it {container} sh -c '{command}'"
+        print(f"Complete command: {complete_command}")
+        output, error = run_command(complete_command)
+        if error:
+            print(f"Error: {error}")
+        else:
+            print(f"Output:\n{output}")
 
 if __name__ == "__main__":
-    print("Testing reverse proxy...")
-    test_reverse_proxy()
-    
-    print("Testing web service...")
-    test_web_service()
-    
-    print("Testing firewall from firewall_dmz to web service...")
-    test_firewall("firewall_dmz", "web", 5000)
-    
-    print("Testing firewall from firewall_mz to db service...")
-    test_firewall("firewall_mz", "db", 3306)
+    check_containers()
+    test_connectivity()

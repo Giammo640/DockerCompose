@@ -30,7 +30,8 @@ services:
       - NET_ADMIN  
       - NET_RAW    
     networks:
-      - dmz_network
+      - dmz_network:
+          ipv4_address: "192.168.200.1"
     volumes:
       - ./dmz_firewall.sh:/usr/local/bin/dmz_firewall.sh
     entrypoint: ["/bin/bash", "/usr/local/bin/dmz_firewall.sh"]
@@ -42,7 +43,8 @@ services:
       - NET_ADMIN
       - NET_RAW
     networks:
-      - mz_network
+      - mz_network:
+          ipv4_address: 192.168.100.1
     volumes:
       - ./mz_firewall.sh:/usr/local/bin/mz_firewall.sh
     entrypoint: ["/bin/bash", "/usr/local/bin/mz_firewall.sh"]
@@ -57,9 +59,26 @@ services:
     networks:
       - mz_network
 
+
 networks:
+  #rete interna alla parte privata del sistema
+  mz_internal:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: "192.168.100.0/24"
+          gateway: "192.168.100.1"  # IP del firewall_mz
+  
+  dmz_internal:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: "192.168.200.0/24"
+          gateway: "192.168.200.2"  # IP del firewall_dmz
+ 
   dmz_network:
     driver: bridge
+ 
   mz_network:
     driver: bridge
 
