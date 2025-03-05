@@ -1,5 +1,7 @@
 #!/bin/bash
 
+apt update && apt install -y iptables
+
 # Abilita il forwarding dei pacchetti
 echo "1" > /proc/sys/net/ipv4/ip_forward
 

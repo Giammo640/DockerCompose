@@ -23,6 +23,8 @@ services:
       MYSQL_PASSWORD: wordpress
     networks:
       - mz_network
+    restart: always
+
   
   firewall_dmz:
     image: ubuntu
@@ -30,11 +32,12 @@ services:
       - NET_ADMIN  
       - NET_RAW    
     networks:
-      - dmz_network:
-          ipv4_address: 192.168.200.1
+      - dmz_network
+        # ipv4_address: 192.168.200.1
     volumes:
       - ./dmz_firewall.sh:/usr/local/bin/dmz_firewall.sh
     entrypoint: ["/bin/bash", "/usr/local/bin/dmz_firewall.sh"]
+    restart: always
 
   
   firewall_mz:
@@ -43,21 +46,31 @@ services:
       - NET_ADMIN
       - NET_RAW
     networks:
-      - mz_network:
-          ipv4_address: 192.168.100.1
+      - mz_network
+        # ipv4_address: 192.168.100.1
     volumes:
       - ./mz_firewall.sh:/usr/local/bin/mz_firewall.sh
     entrypoint: ["/bin/bash", "/usr/local/bin/mz_firewall.sh"]
-
+    restart: always
 
   client1:
     image: alpine
+    command: ["sleep", "infinity"]
     networks:
       - mz_network
+    restart: always
   client2:
     image: alpine
+    command: ["sleep", "infinity"]
     networks:
       - mz_network
+    restart: always
+  client3:
+    image: alpine
+    command: ["sleep", "infinity"]
+    networks:
+      - dmz_network
+    restart: always
 
 
 networks:
@@ -66,15 +79,15 @@ networks:
     driver: bridge
     ipam:
       config:
-        - subnet: "192.168.100.0/24"
-          gateway: "192.168.100.1"  # IP del firewall_mz
+        - subnet: "172.18.0.0/16"
+          gateway: "172.18.0.1"  # IP del firewall_mz
   
   dmz_internal:
     driver: bridge
     ipam:
       config:
-        - subnet: "192.168.200.0/24"
-          gateway: "192.168.200.2"  # IP del firewall_dmz
+        - subnet: "172.19.0.0/16"
+          gateway: "172.19.0.1"  # IP del firewall_dmz
  
   dmz_network:
     driver: bridge

@@ -18,13 +18,13 @@ def test_connectivity():
     print("\nTesting connectivity...")
 
     tests = [
-        ("client", "ping -c 3 google.com"),  # Test di accesso a Internet
-        ("dmz_client", "ping -c 3 facebook.com"),  # Test di accesso a Internet
-        ("dmz_client", "ping -c 3 google.com"),  # Test di accesso a Internet
-        ("client", "nc -zv db-server 3306"),  # Test connessione al DB
-        ("firewall_mz", "ufw status verbose"),  # Stato del firewall MZ
-        ("firewall_dmz", "ufw status verbose"),  # Stato del firewall DMZ
-        ("db-server", "mysqladmin ping -h localhost -u user --password=password"),  # Test MySQL
+        ("client1", "ping -c 3 google.com"),  # Test di accesso a Internet
+        ("client3", "ping -c 3 facebook.com"),  # Test di accesso a Internet
+        ("client3", "ping -c 3 google.com"),  # Test di accesso a Internet
+        ("client2", "nc -zv db-server 3306"),  # Test connessione al DB
+        ("firewall_mz", "iptables -L -v -n"),  # Stato del firewall MZ
+        ("firewall_dmz", "iptables -L -v -n"),  # Stato del firewall DMZ
+        ("db", "mysqladmin ping -h localhost -u user --password=password"),  # Test MySQL
     ]
 
     for container, command in tests:
